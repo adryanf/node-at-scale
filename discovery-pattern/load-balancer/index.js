@@ -7,7 +7,7 @@ var Discover = require('@dashersw/node-discover');
 
 var loadBalancerConfig = config.get('load-balancer');
 
-var nodeMap = {};
+var serviceNodeMap = {};
 
 var discovery = Discover({
     redis: {
@@ -17,51 +17,46 @@ var discovery = Discover({
 }, function(error){
     if(!error){
         discovery.promote();
-
-        discovery.join(loadBalancerConfig.service.name, function (data) {
-            if(nodeMap[data.id]){
-                nodeMap[data.id]['stats'] = data.stats;
-            }
-            console.log('Node id: '+ data.id + ' has cpuLoad: ' + data.stats.cpu);
-        });
     }
 });
 
 discovery.on('added', function (node) {
     console.log("A new node has been added.");
     console.log(node);
-    nodeMap[node.id] = {
-        hostName: node.advertisement.hostName,
-        port: node.advertisement.port
-    };
+    if(node.advertisement && node.advertisement.service){
+        serviceNodeMap[node.id] = {
+            hostName: node.advertisement.hostName,
+            port: node.advertisement.port
+        };
+    }
 });
 
 discovery.on('removed', function (node) {
     console.log("A node has been removed.");
     console.log(node);
-    delete nodeMap[node.id];
+    delete serviceNodeMap[node.id];
 });
 
 var proxy = httpProxy.createProxyServer();
 
 http.createServer(function (req, res) {
     
-    var nodeMapKeys = Object.keys(nodeMap);
+    var serviceNodeMapKeys = Object.keys(serviceNodeMap);
 
     // if there are no services, give an error
-    if (!nodeMapKeys.length) {
+    if (!serviceNodeMapKeys.length) {
         res.writeHead(503, {'Content-Type' : 'text/plain'});
         res.end('Service unavailable');
         return;
     }
 
-    var idx = Math.floor(Math.random() * nodeMapKeys.length);
-    var nodeIdkey = nodeMapKeys[idx];
-    var nodeLocation = nodeMap[nodeIdkey];
+    var idx = Math.floor(Math.random() * serviceNodeMapKeys.length);
+    var serviceNodeIdkey = serviceNodeMapKeys[idx];
+    var serviceNodeLocation = serviceNodeMap[serviceNodeIdkey];
 
     var target = {
-        host: nodeLocation.hostName,
-        port: nodeLocation.port
+        host: serviceNodeLocation.hostName,
+        port: serviceNodeLocation.port
     };
 
     proxy.web(req, res, {

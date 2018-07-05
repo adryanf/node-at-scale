@@ -49,6 +49,7 @@ function startup(){
             port: serviceConfig.redis.port
         },
         advertisement: {
+            service: true,
             name: serviceConfig.name,
             hostName: serviceConfig.hostName,
             port: serviceConfig.port
@@ -59,8 +60,9 @@ function startup(){
             setInterval(function(){
                 pidusage(process.pid, function (err, stats) {
                     if(!err){
-                        discovery.send(serviceConfig.name, {
+                        discovery.send(serviceConfig.statsChannel, {
                             id: discovery.broadcast.instanceUuid,
+                            name: serviceConfig.name,
                             stats: stats
                         });
                     }

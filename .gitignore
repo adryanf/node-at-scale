@@ -3,3 +3,4 @@
 /registry-pattern/load-balancer/node_modules
 /registry-pattern/service/node_modules
 /registry-pattern/service-registry/node_modules
+/discovery-pattern/monitor/node_modules

@@ -4,6 +4,7 @@
         "port": 8001,
         "hostName": "localhost",
         "statsReportingIntervalInms": 5000, 
+        "statsChannel" : "node-stats",
         "redis" : {
             "host" : "127.0.0.1",
             "port" : 6379
