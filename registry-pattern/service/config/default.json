@@ -1,0 +1,9 @@
+{
+    "service":{
+        "name": "pi-server",
+        "registry":{
+            "host": "localhost",
+            "port": 5001
+        }
+    }
+}

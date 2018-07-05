@@ -1,0 +1,5 @@
+/discovery-pattern/load-balancer/node_modules
+/discovery-pattern/service/node_modules
+/registry-pattern/load-balancer/node_modules
+/registry-pattern/service/node_modules
+/registry-pattern/service-registry/node_modules

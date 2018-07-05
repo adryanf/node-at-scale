@@ -1,0 +1,12 @@
+{
+    "load-balancer": {
+        "port": 9900,
+        "service":{
+            "name": "pi-server"
+        },
+        "redis" : {
+            "host" : "127.0.0.1",
+            "port" : 6379
+        }
+    }
+}
