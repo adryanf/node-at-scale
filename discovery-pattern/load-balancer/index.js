@@ -7,6 +7,8 @@ var Discover = require('@dashersw/node-discover');
 
 var loadBalancerConfig = config.get('load-balancer');
 
+var nodeMap = {};
+
 var discovery = Discover({
     redis: {
         host: loadBalancerConfig.redis.host,
@@ -16,16 +18,14 @@ var discovery = Discover({
     if(!error){
         discovery.promote();
 
-        var success = discovery.join(loadBalancerConfig.service.name, function (data) {
-            console.log(data);
+        discovery.join(loadBalancerConfig.service.name, function (data) {
+            if(nodeMap[data.id]){
+                nodeMap[data.id]['stats'] = data.stats;
+            }
+            console.log('Node id: '+ data.id + ' has cpuLoad: ' + data.stats.cpu);
         });
-
-        if (!success) {
-            //could not join that channel; probably because it is reserved
-        }
     }
 });
-var nodeMap = {};
 
 discovery.on('added', function (node) {
     console.log("A new node has been added.");
@@ -59,10 +59,19 @@ http.createServer(function (req, res) {
     var nodeIdkey = nodeMapKeys[idx];
     var nodeLocation = nodeMap[nodeIdkey];
 
+    var target = {
+        host: nodeLocation.hostName,
+        port: nodeLocation.port
+    };
+
     proxy.web(req, res, {
-        target: {
-            host: nodeLocation.hostName,
-            port: nodeLocation.port
+        target: target
+    }, function(err){
+        console.log(err)
+        if(err){
+            res.writeHead(503, {'Content-Type' : 'text/plain'});
+            res.end('Service unavailable');
+            return;
         }
     });
 }).listen(loadBalancerConfig.port);
